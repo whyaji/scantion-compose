@@ -172,7 +172,7 @@ fun ContentSection(
                     }
 
                     is Resource.Error -> {
-                        Toast.makeText(context, "Error ${it.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Terjadi masalah jaringan/server atau data yang anda masukan salah", Toast.LENGTH_LONG).show()
                         isLoading.value = false
                     }
                 }

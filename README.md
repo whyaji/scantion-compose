@@ -1,5 +1,15 @@
 # Scantion - Skin Cancer Detection Mobile App
 
+Scantion is a mobile app that uses artificial intelligence (AI) to detect skin cancer from images. The app is designed to be easy to use and accessible to everyone. To use the app, simply take a picture of your skin lesion and the app will analyze the image and provide a diagnosis.
+
+The app is developed using Jetpack Compose, a modern UI toolkit for Android. Jetpack Compose makes it easy to create beautiful and responsive UIs with less code. The app is also developed in Kotlin, a modern programming language that is known for its conciseness and readability.
+
+The machine learning model used by the app is trained on a large dataset of skin images. The model is able to distinguish between different types of skin cancer, including melanoma, benign and other skin cancer.
+
+The Scantion skin cancer detection app is a Capstone product-based project from Bangkit Academy 2023. The project team consists of students from different universities in Indonesia with expertise in machine learning, cloud computing, and mobile development.
+
+![alt text](https://raw.githubusercontent.com/Bangkit-Capstone-C23-PS455-Team/scantion-compose/main/ss-scantion.jpg)
+
 This repository contains the source code and related resources for Scantion, a Skin Cancer Detection mobile app built using Jetpack Compose. The app assists users in detecting and assessing potential skin cancer lesions from images captured by their mobile devices.
 
 ## Features

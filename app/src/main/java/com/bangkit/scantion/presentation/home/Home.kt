@@ -201,16 +201,16 @@ fun Home(
                 })
         }
         Column(modifier = Modifier.fillMaxSize()) {
-            LastExam(navController, examinationViewModel)
+            LastExam(navController, examinationViewModel, userLog.id)
         }
     }
 }
 
 @Composable
-fun LastExam(navController: NavHostController, examinationViewModel: ExaminationViewModel) {
+fun LastExam(navController: NavHostController, examinationViewModel: ExaminationViewModel, userId: String) {
     val skinExams = examinationViewModel.skinExams.observeAsState()
-    val total = if (skinExams.value.orPlaceHolderList().size > 2) 2 else skinExams.value.orPlaceHolderList().size
-    LastSkinExams(navController = navController, skinCases = skinExams.value.orPlaceHolderList(), total)
+    val total = if (skinExams.value.orPlaceHolderList(userId).size > 2) 2 else skinExams.value.orPlaceHolderList(userId).size
+    LastSkinExams(navController = navController, skinCases = skinExams.value.orPlaceHolderList(userId), total)
 }
 
 @Composable

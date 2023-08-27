@@ -2,6 +2,7 @@ package com.bangkit.scantion.presentation.history
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,7 +31,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,20 +50,67 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.bangkit.scantion.model.SkinCase
+import com.bangkit.scantion.model.UserLog
+import com.bangkit.scantion.navigation.Graph
 import com.bangkit.scantion.navigation.HomeScreen
 import com.bangkit.scantion.util.Constants.orPlaceHolderList
+import com.bangkit.scantion.util.Resource
 import com.bangkit.scantion.util.getDayFormat
 import com.bangkit.scantion.viewmodel.ExaminationViewModel
+import com.bangkit.scantion.viewmodel.HomeViewModel
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun History(
     navController: NavHostController,
+    homeViewModel: HomeViewModel = hiltViewModel(),
     examinationViewModel: ExaminationViewModel = hiltViewModel()
 ) {
+
+    var userLog = UserLog()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val userNotFoundUnit = {
+        navController.popBackStack()
+        navController.navigate(Graph.AUTHENTICATION)
+    }
+
+    try {
+        userLog = homeViewModel.userLog.value!!
+    } catch (e: Exception){
+        homeViewModel.getUser().observe(lifecycleOwner) { result ->
+            if (result != null) {
+                when (result) {
+                    is Resource.Loading -> {}
+                    is Resource.Success -> {
+                        userLog = UserLog(
+                            result.data.id,
+                            result.data.name,
+                            result.data.email,
+                            result.data.age,
+                            result.data.province,
+                            result.data.city
+                        )
+                        homeViewModel.saveUser(userLog)
+                        Log.d("user", "Get User success")
+                    }
+
+                    is Resource.Error -> {
+                        Log.d("user", "Get User Failed")
+                        userNotFoundUnit.invoke()
+                    }
+                }
+            } else {
+                Log.d("user", "Get User Failed")
+                userNotFoundUnit.invoke()
+            }
+        }
+    }
+
     val skinCaseQuery = remember { mutableStateOf("") }
     val skinExams = examinationViewModel.skinExams.observeAsState()
-    val skinCases = skinExams.value.orPlaceHolderList()
+    val skinCases = skinExams.value.orPlaceHolderList(userLog.id)
 
 
     Scaffold(

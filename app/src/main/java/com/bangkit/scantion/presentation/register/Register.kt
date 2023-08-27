@@ -165,7 +165,7 @@ fun ContentSection(
                         isLoading.value = false
                     }
                     is Resource.Error -> {
-                        Toast.makeText(context, "Error ${it.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Registrasi gagal dikarenakan masalah jaringan/server atau email user telah terdaftar", Toast.LENGTH_LONG).show()
                         isLoading.value = false
                     }
                 }
