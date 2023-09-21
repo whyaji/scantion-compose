@@ -1,6 +1,7 @@
 package com.bangkit.scantion.presentation.register
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -48,51 +49,58 @@ import com.bangkit.scantion.ui.component.AuthSpacer
 import com.bangkit.scantion.ui.component.AuthTextField
 import com.bangkit.scantion.ui.component.ScantionButton
 import com.bangkit.scantion.util.Resource
-import com.bangkit.scantion.viewmodel.RegisterViewModel
+import com.bangkit.scantion.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Register(
     navController: NavHostController,
     fromWalkthrough: Boolean = false,
-    registerViewModel: RegisterViewModel = hiltViewModel()
+    registerViewModel: AuthViewModel = hiltViewModel()
 ) {
     val focusManager = LocalFocusManager.current
     val isLoading = rememberSaveable { mutableStateOf(false) }
 
-    Scaffold(modifier = Modifier
-        .clickable(indication = null,
-            interactionSource = remember { MutableInteractionSource() },
-            onClick = { focusManager.clearFocus() }), topBar = {
-        TopAppBar(
-            title = { },
-            navigationIcon = {
-                IconButton(onClick = {
-                    focusManager.clearFocus()
-                    navController.popBackStack()
-                }) {
-                    Icon(
-                        imageVector = Icons.Outlined.KeyboardArrowLeft,
-                        contentDescription = "back"
-                    )
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Scaffold(modifier = Modifier
+            .clickable(indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = { focusManager.clearFocus() }), topBar = {
+            TopAppBar(
+                title = { },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        focusManager.clearFocus()
+                        navController.popBackStack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Outlined.KeyboardArrowLeft,
+                            contentDescription = "back"
+                        )
+                    }
+                })
+        }
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                contentPadding = innerPadding,
+                content = {
+                    item {
+                        ContentSection(navController = navController, focusManager, registerViewModel, isLoading)
+                        BottomSection(navController = navController, fromWalkthrough, focusManager)
+                    }
                 }
-            })
-    }
-    ) { innerPadding ->
-        if (isLoading.value) {
+            )
+        }
+        if (isLoading.value){
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .clickable {  }
+                    .background(color = MaterialTheme.colorScheme.background.copy(alpha = .8f)))
                 CircularProgressIndicator()
             }
-        } else {
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = 20.dp),
-            contentPadding = innerPadding,
-            content = {
-                item {
-                    ContentSection(navController = navController, focusManager, registerViewModel, isLoading)
-                    BottomSection(navController = navController, fromWalkthrough, focusManager)
-                }
-            })}
+        }
     }
 }
 
@@ -124,7 +132,7 @@ fun BottomSection(
 fun ContentSection(
     navController: NavHostController,
     focusManager: FocusManager,
-    registerViewModel: RegisterViewModel,
+    registerViewModel: AuthViewModel,
     isLoading: MutableState<Boolean>
 ) {
     var nameText by rememberSaveable { mutableStateOf("") }
@@ -148,24 +156,20 @@ fun ContentSection(
     val performRegistration: () -> Unit = {
         isLoading.value = true
         focusManager.clearFocus()
-        registerViewModel.registerUser(nameText, emailText, passwordText).observe(lifecycleOwner){
+        registerViewModel.signup(nameText, emailText, passwordText).observe(lifecycleOwner){
             if (it != null) {
                 when(it) {
                     is Resource.Loading -> {
                         isLoading.value = true
                     }
                     is Resource.Success -> {
-                        if (!it.data.message.isNullOrEmpty() && it.data.message == "User has been regist"){
-                            Toast.makeText(context, "Registrasi berhasil, silahkan login", Toast.LENGTH_LONG).show()
-                            navController.popBackStack()
-                            navController.navigate(AuthScreen.Login.createRoute(true))
-                        } else {
-                            Toast.makeText(context, "Registrasi gagal", Toast.LENGTH_LONG).show()
-                        }
+                        navController.popBackStack()
+                        navController.navigate(AuthScreen.Login.createRoute(true))
+                        Toast.makeText(context, "Registrasi Berhasil, Silahkan Login", Toast.LENGTH_LONG).show()
                         isLoading.value = false
                     }
                     is Resource.Error -> {
-                        Toast.makeText(context, "Registrasi gagal dikarenakan masalah jaringan/server atau email user telah terdaftar", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, it.message, Toast.LENGTH_LONG).show()
                         isLoading.value = false
                     }
                 }

@@ -83,27 +83,28 @@ import com.bangkit.scantion.ui.component.ScantionButton
 import com.bangkit.scantion.util.ImageFileProvider
 import com.bangkit.scantion.util.ImageFileProvider.Companion.savedImage
 import com.bangkit.scantion.util.saveToPdf
+import com.bangkit.scantion.viewmodel.AuthViewModel
 import com.bangkit.scantion.viewmodel.ExaminationViewModel
-import com.bangkit.scantion.viewmodel.HomeViewModel
 import java.util.UUID
 @SuppressLint("StateFlowValueCalledInComposition", "UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun Examination(
     navController: NavHostController,
-    homeViewModel: HomeViewModel = hiltViewModel(),
+    viewModel: AuthViewModel = hiltViewModel(),
     examinationViewModel: ExaminationViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 
     var userLog = UserLog()
 
-    try {
-        userLog = homeViewModel.userLog.value!!
-    } catch (e: Exception) {
-        navController.popBackStack()
-        navController.popBackStack()
-        navController.navigate(Graph.AUTHENTICATION)
+    viewModel.currentUser.let {
+        if (it != null) {
+            userLog = UserLog(it.uid, it.displayName.toString(), it.email.toString())
+        } else {
+            navController.popBackStack()
+            navController.navigate(Graph.AUTHENTICATION)
+        }
     }
 
     val items = listOf(
