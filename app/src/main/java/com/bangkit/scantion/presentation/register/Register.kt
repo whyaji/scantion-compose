@@ -1,5 +1,7 @@
 package com.bangkit.scantion.presentation.register
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,21 +47,26 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.vectorResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bangkit.scantion.navigation.AuthScreen
+import com.bangkit.scantion.navigation.Graph
 import com.bangkit.scantion.ui.component.AuthSpacer
 import com.bangkit.scantion.ui.component.AuthTextField
 import com.bangkit.scantion.ui.component.ScantionButton
 import com.bangkit.scantion.util.Resource
 import com.bangkit.scantion.viewmodel.AuthViewModel
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Register(
     navController: NavHostController,
     fromWalkthrough: Boolean = false,
-    registerViewModel: AuthViewModel = hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val focusManager = LocalFocusManager.current
     val isLoading = rememberSaveable { mutableStateOf(false) }
+    val db = Firebase.firestore
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Scaffold(modifier = Modifier
@@ -86,7 +93,7 @@ fun Register(
                 contentPadding = innerPadding,
                 content = {
                     item {
-                        ContentSection(navController = navController, focusManager, registerViewModel, isLoading)
+                        ContentSection(navController = navController, focusManager, viewModel, isLoading, db)
                         BottomSection(navController = navController, fromWalkthrough, focusManager)
                     }
                 }
@@ -132,8 +139,9 @@ fun BottomSection(
 fun ContentSection(
     navController: NavHostController,
     focusManager: FocusManager,
-    registerViewModel: AuthViewModel,
-    isLoading: MutableState<Boolean>
+    viewModel: AuthViewModel,
+    isLoading: MutableState<Boolean>,
+    db: FirebaseFirestore
 ) {
     var nameText by rememberSaveable { mutableStateOf("") }
     var emailText by rememberSaveable { mutableStateOf("") }
@@ -156,16 +164,56 @@ fun ContentSection(
     val performRegistration: () -> Unit = {
         isLoading.value = true
         focusManager.clearFocus()
-        registerViewModel.signup(nameText, emailText, passwordText).observe(lifecycleOwner){
+        viewModel.signup(nameText, emailText, passwordText).observe(lifecycleOwner){
             if (it != null) {
                 when(it) {
                     is Resource.Loading -> {
                         isLoading.value = true
                     }
                     is Resource.Success -> {
-                        navController.popBackStack()
-                        navController.navigate(AuthScreen.Login.createRoute(true))
-                        Toast.makeText(context, "Registrasi Berhasil, Silahkan Login", Toast.LENGTH_LONG).show()
+                        viewModel.login(emailText, passwordText).observe(lifecycleOwner) { loginResult ->
+                            if (loginResult != null) {
+                                when (loginResult) {
+                                    is Resource.Loading -> {
+                                        isLoading.value = true
+                                    }
+
+                                    is Resource.Success -> {
+                                        val user = viewModel.currentUser
+                                        val profile = hashMapOf(
+                                            "name" to nameText,
+                                            "born" to "",
+                                            "city" to "",
+                                        )
+
+                                        if (user != null){
+                                            db.collection("users").document(user.uid)
+                                                .set(profile)
+                                                .addOnSuccessListener {
+                                                    Log.d(TAG, "Profile user successfully written!")
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    Log.w(TAG, "Error adding document", e)
+                                                }
+                                        }
+
+                                        navController.navigate(Graph.HOME){
+                                            popUpTo(Graph.AUTHENTICATION)
+                                        }
+                                        isLoading.value = false
+                                        Toast.makeText(context, "Register & Login Berhasil", Toast.LENGTH_LONG).show()
+                                    }
+
+                                    is Resource.Error -> {
+                                        Toast.makeText(context, loginResult.message, Toast.LENGTH_LONG).show()
+                                        isLoading.value = false
+                                    }
+                                }
+                            }
+                        }
+//                        navController.popBackStack()
+//                        navController.navigate(AuthScreen.Login.createRoute(true))
+//                        Toast.makeText(context, "Registrasi Berhasil, Silahkan Login", Toast.LENGTH_LONG).show()
                         isLoading.value = false
                     }
                     is Resource.Error -> {

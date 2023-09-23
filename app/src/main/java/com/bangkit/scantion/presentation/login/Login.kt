@@ -93,7 +93,7 @@ fun Login(
                             focusManager,
                             isLoading
                         )
-                        BottomSection(navController = navController, fromWalkthrough, focusManager, isLoading)
+                        BottomSection(navController = navController, fromWalkthrough, focusManager)
                     }
                 }
             )
@@ -115,7 +115,6 @@ fun BottomSection(
     navController: NavHostController,
     fromWalkthrough: Boolean,
     focusManager: FocusManager,
-    isLoading: MutableState<Boolean>,
 ) {
     Row(
         modifier = Modifier

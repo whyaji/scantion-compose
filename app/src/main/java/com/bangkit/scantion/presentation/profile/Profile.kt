@@ -118,6 +118,14 @@ fun ContentSection(
 
     val items = listOf(
         ProfileItems(
+            menuName = "User Profile",
+            desc = "Edit data user",
+            icon = ImageVector.vectorResource(id = R.drawable.ic_profile),
+            action = {
+                navController.navigate(HomeScreen.UserProfile.route)
+            }
+        ),
+        ProfileItems(
             menuName = "Pengaturan",
             desc = "Mengatur tema",
             icon = ImageVector.vectorResource(id = R.drawable.ic_settings),

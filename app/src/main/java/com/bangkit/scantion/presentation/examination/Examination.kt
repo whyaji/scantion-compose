@@ -1,8 +1,10 @@
 package com.bangkit.scantion.presentation.examination
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.AnimatedVisibility
@@ -85,6 +87,8 @@ import com.bangkit.scantion.util.ImageFileProvider.Companion.savedImage
 import com.bangkit.scantion.util.saveToPdf
 import com.bangkit.scantion.viewmodel.AuthViewModel
 import com.bangkit.scantion.viewmodel.ExaminationViewModel
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import java.util.UUID
 @SuppressLint("StateFlowValueCalledInComposition", "UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
@@ -94,11 +98,13 @@ fun Examination(
     viewModel: AuthViewModel = hiltViewModel(),
     examinationViewModel: ExaminationViewModel = hiltViewModel()
 ) {
+    val db = Firebase.firestore
     val context = LocalContext.current
 
     var userLog = UserLog()
+    val user = viewModel.currentUser
 
-    viewModel.currentUser.let {
+    user.let {
         if (it != null) {
             userLog = UserLog(it.uid, it.displayName.toString(), it.email.toString())
         } else {
@@ -149,6 +155,8 @@ fun Examination(
         val newId = "case-id-${UUID.randomUUID()}"
         val savedImage = savedImage(context, photoUri!!, newId)
         if (savedImage != null) {
+            val cancerType = savedImage.label
+            val accuracy = savedImage.confidence
             skinCase = SkinCase(
                 id = newId,
                 userId = userLog.id,
@@ -156,8 +164,8 @@ fun Examination(
                 bodyPart = bodyPart,
                 howLong = howLong,
                 symptom = symptom,
-                cancerType = savedImage.label,
-                accuracy = savedImage.confidence
+                cancerType = cancerType,
+                accuracy = accuracy
             )
         }
         isGotResult = true
@@ -167,6 +175,28 @@ fun Examination(
     LaunchedEffect(skinCase) {
         if (skinCase != null && !isPostDone && isGotResult) {
             examinationViewModel.addSkinExam(skinCase!!)
+            val skinCaseMap = hashMapOf(
+                "id" to skinCase!!.id,
+                "bodyPart" to skinCase!!.bodyPart,
+                "howLong" to skinCase!!.howLong,
+                "symptom" to skinCase!!.symptom,
+                "cancerType" to skinCase!!.cancerType,
+                "accuracy" to skinCase!!.accuracy
+            )
+
+            if (user != null){
+                db.collection("users")
+                    .document(user.uid)
+                    .collection("cases")
+                    .document(skinCase!!.id)
+                    .set(skinCaseMap)
+                    .addOnSuccessListener {
+                        Log.d(ContentValues.TAG, "Skin case successfully written!")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.w(ContentValues.TAG, "Error adding document", e)
+                    }
+            }
             isPostDone = true
         }
     }
@@ -396,10 +426,14 @@ fun TopSection(
         if (index == size - 1) (size + 1).toFloat() else (index.toFloat() + 1) / (items.size + 1)
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec, label = ""
     )
 
-    Column(modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colorScheme.surface),) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.surface)
+    ) {
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center,
