@@ -26,6 +26,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -72,6 +73,7 @@ fun Home(
         TopAppBar(
             title = {
                 Text(
+                    modifier = Modifier.testTag("titleHome"),
                     text = "Halo, ${userLog.name}",
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,

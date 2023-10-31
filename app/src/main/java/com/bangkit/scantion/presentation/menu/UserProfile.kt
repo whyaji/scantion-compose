@@ -207,7 +207,8 @@ fun UserProfile(
                             }
                         },
                         text = if (inEditing) "Simpan" else "Edit",
-                        outlineButton = false
+                        outlineButton = false,
+                        enabled = name.isNotEmpty() && city.isNotEmpty() && born.isNotEmpty()
                     )
                 }
             }

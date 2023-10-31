@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
 import com.bangkit.scantion.navigation.AuthScreen
 import com.bangkit.scantion.ui.component.AuthSpacer
@@ -188,7 +189,7 @@ fun ContentSection(
     )
     AuthSpacer()
     AuthTextField(
-        modifier = Modifier
+        modifier = Modifier.testTag("loginEmailField")
             .fillMaxWidth()
             .focusRequester(emailFocusRequester),
         value = emailText,
@@ -204,7 +205,7 @@ fun ContentSection(
         nextFocusRequester = passwordFocusRequester,
     )
     AuthTextField(
-        modifier = Modifier
+        modifier = Modifier.testTag("loginPasswordField")
             .fillMaxWidth()
             .focusRequester(passwordFocusRequester),
         value = passwordText,
@@ -227,6 +228,6 @@ fun ContentSection(
         enabled = buttonEnabled,
         onClick = performLogin,
         text = stringResource(id = R.string.login_text),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.testTag("loginButton").fillMaxWidth(),
     )
 }

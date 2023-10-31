@@ -21,4 +21,7 @@ interface SkinExamsDao {
 
     @Insert
     fun addSkinExam(skinCase: SkinCase)
+
+    @Query("DELETE FROM ${Constants.TABLE_NAME}")
+    fun clearAllSkinExam()
 }

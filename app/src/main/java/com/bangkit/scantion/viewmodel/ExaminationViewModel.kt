@@ -23,6 +23,12 @@ class ExaminationViewModel @Inject constructor(
         }
     }
 
+    fun clearAllSkinExam(){
+        viewModelScope.launch (Dispatchers.IO) {
+            skinExamsDao.clearAllSkinExam()
+        }
+    }
+
     fun addSkinExam(skinCase: SkinCase){
         viewModelScope.launch (Dispatchers.IO) {
             skinExamsDao.addSkinExam(skinCase)
@@ -32,4 +38,5 @@ class ExaminationViewModel @Inject constructor(
     suspend fun getSkinExamById(skinCaseId: String): SkinCase? {
         return skinExamsDao.getSkinExamById(skinCaseId)
     }
+
 }

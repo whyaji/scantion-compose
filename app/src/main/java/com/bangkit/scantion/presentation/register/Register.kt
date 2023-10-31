@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bangkit.scantion.navigation.AuthScreen
@@ -150,6 +151,8 @@ fun ContentSection(
     val passwordVisibility = rememberSaveable { mutableStateOf(true) }
     val confirmPasswordVisibility = rememberSaveable { mutableStateOf(true) }
 
+    val isSuccess = rememberSaveable { mutableStateOf(false) }
+
     val nameFocusRequester = remember { FocusRequester() }
     val emailFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
@@ -191,6 +194,7 @@ fun ContentSection(
                                                 .set(profile)
                                                 .addOnSuccessListener {
                                                     Log.d(TAG, "Profile user successfully written!")
+                                                    isSuccess.value = true
                                                 }
                                                 .addOnFailureListener { e ->
                                                     Log.w(TAG, "Error adding document", e)
@@ -211,9 +215,6 @@ fun ContentSection(
                                 }
                             }
                         }
-//                        navController.popBackStack()
-//                        navController.navigate(AuthScreen.Login.createRoute(true))
-//                        Toast.makeText(context, "Registrasi Berhasil, Silahkan Login", Toast.LENGTH_LONG).show()
                         isLoading.value = false
                     }
                     is Resource.Error -> {
@@ -232,7 +233,7 @@ fun ContentSection(
     )
     AuthSpacer()
     AuthTextField(
-        modifier = Modifier
+        modifier = Modifier.testTag("registerNameField")
             .fillMaxWidth()
             .focusRequester(nameFocusRequester),
         value = nameText,
@@ -249,7 +250,7 @@ fun ContentSection(
 
     AuthSpacer()
     AuthTextField(
-        modifier = Modifier
+        modifier = Modifier.testTag("registerEmailField")
             .fillMaxWidth()
             .focusRequester(emailFocusRequester),
         value = emailText,
@@ -268,7 +269,7 @@ fun ContentSection(
     AuthSpacer()
 
     AuthTextField(
-        modifier = Modifier
+        modifier = Modifier.testTag("registerPasswordField")
             .fillMaxWidth()
             .focusRequester(passwordFocusRequester),
         value = passwordText,
@@ -288,7 +289,7 @@ fun ContentSection(
     AuthSpacer()
 
     AuthTextField(
-        modifier = Modifier
+        modifier = Modifier.testTag("registerConfirmPasswordField")
             .fillMaxWidth()
             .focusRequester(confirmPasswordFocusRequester),
         value = confirmPasswordText,
@@ -310,7 +311,7 @@ fun ContentSection(
     ScantionButton(
         enabled = buttonEnabled,
         onClick = performRegistration,
-        text = stringResource(id = R.string.register_text),
-        modifier = Modifier.fillMaxWidth(),
+        text = if (isSuccess.value) "Berhasil" else stringResource(id = R.string.register_text),
+        modifier = Modifier.testTag("registerButton").fillMaxWidth(),
     )
 }
