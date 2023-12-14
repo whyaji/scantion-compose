@@ -200,12 +200,12 @@ fun ContentSection(
                                                     Log.w(TAG, "Error adding document", e)
                                                 }
                                         }
+                                        isLoading.value = false
+                                        Toast.makeText(context, "Register & Login Berhasil", Toast.LENGTH_LONG).show()
 
                                         navController.navigate(Graph.HOME){
                                             popUpTo(Graph.AUTHENTICATION)
                                         }
-                                        isLoading.value = false
-                                        Toast.makeText(context, "Register & Login Berhasil", Toast.LENGTH_LONG).show()
                                     }
 
                                     is Resource.Error -> {

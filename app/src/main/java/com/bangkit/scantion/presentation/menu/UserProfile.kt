@@ -78,7 +78,12 @@ fun UserProfile(
         var city by rememberSaveable { mutableStateOf("") }
         var born by rememberSaveable { mutableStateOf("") }
 
+        var nameBfr by rememberSaveable { mutableStateOf("") }
+        var cityBfr by rememberSaveable { mutableStateOf("") }
+        var bornBfr by rememberSaveable { mutableStateOf("") }
+
         var hasRead by rememberSaveable { mutableStateOf(false) }
+        var hasReadBfr by rememberSaveable { mutableStateOf(false) }
         var inEditing by rememberSaveable { mutableStateOf(false) }
 
         val user = viewModel.currentUser
@@ -188,6 +193,20 @@ fun UserProfile(
                         modifier = Modifier.fillMaxWidth().padding(start = 5.dp),
                         onClick = {
                             inEditing = if (!inEditing){
+                                if (!hasReadBfr){
+                                    docRef?.get()?.addOnSuccessListener { document ->
+                                        if (document != null) {
+                                            nameBfr = document.data?.get("name").toString()
+                                            cityBfr = document.data?.get("city").toString()
+                                            bornBfr = document.data?.get("born").toString()
+                                        } else {
+                                            Log.d(TAG, "No such document")
+                                        }
+                                    }?.addOnFailureListener { exception ->
+                                        Log.d(TAG, "get failed with ", exception)
+                                    }
+                                    hasReadBfr = true
+                                }
                                 true
                             } else {
                                 if (user != null) {
@@ -200,6 +219,7 @@ fun UserProfile(
                                     "city" to city,
                                     "born" to born
                                 )
+                                hasReadBfr = false
                                 docRef?.update(updates)
                                     ?.addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully updated!") }
                                     ?.addOnFailureListener { exception -> Log.w(TAG, "Error updating document", exception) }
@@ -208,7 +228,7 @@ fun UserProfile(
                         },
                         text = if (inEditing) "Simpan" else "Edit",
                         outlineButton = false,
-                        enabled = name.isNotEmpty() && city.isNotEmpty() && born.isNotEmpty()
+                        enabled = if (inEditing) (name != nameBfr || city != cityBfr || born != bornBfr) && name.isNotEmpty() && city.isNotEmpty() && born.isNotEmpty() else true
                     )
                 }
             }

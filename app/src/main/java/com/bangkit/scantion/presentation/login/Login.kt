@@ -166,11 +166,11 @@ fun ContentSection(
                     }
 
                     is Resource.Success -> {
+                        isLoading.value = false
+                        Toast.makeText(context, "Login Berhasil", Toast.LENGTH_LONG).show()
                         navController.navigate(Graph.HOME){
                             popUpTo(Graph.AUTHENTICATION)
                         }
-                        isLoading.value = false
-                        Toast.makeText(context, "Login Berhasil", Toast.LENGTH_LONG).show()
                     }
 
                     is Resource.Error -> {
